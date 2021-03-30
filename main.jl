@@ -50,10 +50,13 @@ end
 ################################################################################
 
 function Control_PD!(τ, t, state)
-    kp = 100
+    kp = 500
     kd = 50
 
-    τ .= -diagm(kd*[1,1,1,1,1,1,1,1,1])*velocity(state) - diagm(kp*[1,1,1,1,1,1,1,1,1])*(configuration(state) - [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01])
+    qd = [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01]
+
+
+    τ .= -diagm(kd*[1,1,1,1,1,1,1,1,1])*velocity(state) - diagm(kp*[1,1,1,1,1,1,1,1,1])*(configuration(state) - qd )
     act_sat = 50; # Actuator limits
     τ .= map( x -> x > act_sat ? act_sat : x,τ)
     τ .= map( x -> x < -act_sat ? -act_sat : x,τ)
@@ -65,50 +68,41 @@ end
 
 
 function Control_CTC!(τ, t, state)
-    time = 0
-    dt = .01
+
+    qd = [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01]
+
+
     qprev = configuration(state)
-    i = 0
 
     kp = 50
     kd = 20
 
-    qdes = [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01]
 
     M = mass_matrix(state)
 
-    for i = 0:dt:10
 
-      qd = qprev + ((3*t^2)/(T^2) - (2*t^3/T^3) )*(qdes-qprev)
-      dqd = ((6*t)/(T^2) - (6*t^2/T^3) )*(qdes-qprev)
-      ddqd = (6/(T^2) - (12*t)/(T^3) )*(qdes-qprev)
+    qd = qprev + ((3*t^2)/(T^2) - (2*t^3/T^3) )*(qd-qprev)
+    dqd = ((6*t)/(T^2) - (6*t^2/T^3) )*(qd-qprev)
+    ddqd = (6/(T^2) - (12*t)/(T^3) )*(qd-qprev)
 
-      q = configuration(state)
 
-      dq = velocity(state)
+    dq = velocity(state)
 
-      e = qd-q
-      edot = dqd - dq
+    e = qd-qprev
+    edot = dqd - dq
 
-      τ .= M*(ddqd + kp * e + kd * edot)
+    τ .= M*(ddqd + kp * e + kd * edot) + dynamics_bias(state)
 
-      act_sat = 50; # Actuator limits
-      τ .= map( x -> x > act_sat ? act_sat : x,τ)
-      τ .= map( x -> x < -act_sat ? -act_sat : x,τ)
-
-      time = time + dt
-      i = i + dt
-
-    end
+    act_sat = 50; # Actuator limits
+    τ .= map( x -> x > act_sat ? act_sat : x,τ)
+    τ .= map( x -> x < -act_sat ? -act_sat : x,τ)
 
 end
-
 
 
 #################################################################################
 
 function controller(controller)
-
     vis = Visualizer();open(vis)
 
     delete!(vis)
@@ -125,5 +119,11 @@ function controller(controller)
     problem = ODEProblem(Dynamics(mechanism,controller), state, (0., 10.));
     sol = solve(problem, Tsit5(),reltol=1e-8,abstol=1e-8);
     setanimation!(mvis, sol; realtime_rate = 1.0);
+
+    qd = [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01]
+
+    err = qd - sol[end][1:9]
+    print("\n 2-Norm of Configuration Error: \n\n")
+    print(norm(err,2))
 
 end
