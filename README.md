@@ -39,6 +39,8 @@ controller(Control_CTC!) #to implement the CTC controller
 ```
 Once the command with desired control is entered into the terminal, a window will be opened to visualize the resulting control of the Panda manipulator.  The 2 norm of the manipulator joint angle configuration will also be printed in the terminal.  Note: gain values for PD and CTC controllers have been adjusted to achieve a 2 norm of less than .01.
 
+It was found that the proportional gain could be lowered to 20 and retain the 2 norm limit of configuration error of .01.
+
 
 ## Credit
 I would like to aknowledge the sources that helped me create this code.  
