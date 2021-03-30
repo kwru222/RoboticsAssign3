@@ -69,12 +69,10 @@ end
 
 function Control_CTC!(τ, t, state)
 
-    qd = [0.0;0.0;0.0;0.0;0.0;pi;0.01;0.01;0.01]
-
 
     qprev = configuration(state)
 
-    kp = 50
+    kp = 20
     kd = 20
 
 
