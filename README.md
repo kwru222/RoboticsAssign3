@@ -37,7 +37,7 @@ controller(Control_PD!) #to implement the PD controller
 
 controller(Control_CTC!) #to implement the CTC controller
 ```
-Once the command with desired control is entered into the terminal, a window will be opened to visualize the resulting control of the Panda manipulator.
+Once the command with desired control is entered into the terminal, a window will be opened to visualize the resulting control of the Panda manipulator.  The 2 norm of the manipulator joint angle configuration will also be printed in the terminal.  Note: gain values for PD and CTC controllers have been adjusted to achieve a 2 norm of less than .01.
 
 
 ## Credit
